@@ -18,6 +18,7 @@ define([
   'lodash',
   'kbn',
   'moment',
+  'jsonpath'
 ],
 function (angular, app, _, kbn, moment) {
   'use strict';
@@ -76,7 +77,7 @@ function (angular, app, _, kbn, moment) {
        */
       overflow: 'min-height',
       /** @scratch /panels/table/5
-       * fields:: The fields used a columns of the table, in an array.
+       * fields:: the fields used a columns of the table, in an array.
        */
       fields  : [],
       /** @scratch /panels/table/5
@@ -106,8 +107,8 @@ function (angular, app, _, kbn, moment) {
        */
       all_fields: false,
       /** @scratch /panels/table/5
-       * trimFactor:: The trim factor is the length at which to truncate fields taking the number of
-       * columns in the table into consideration. For example, a trimFactor of 100, with 5
+       * trimFactor:: The trim factor is the length at which to truncate fields takinging into
+       * consideration the number of columns in the table. For example, a trimFactor of 100, with 5
        * columns in the table, would trim each column at 20 character. The entirety of the field is
        * still available in the expanded view of the event.
        */
@@ -167,36 +168,40 @@ function (angular, app, _, kbn, moment) {
       $scope.closeFacet();
       $timeout(function() {
         $scope.modalField = field;
+        $scope.adhocOpts = {
+          height: "200px",
+          chart: chart,
+          field: field,
+          span: $scope.panel.span,
+          type: 'terms',
+          title: 'Top 10 terms in field ' + field
+        };
         showModal(
-          '{"height":"200px","chart":"'+chart+'","field":"'+field+'"}','terms');
+          angular.toJson($scope.adhocOpts),'terms');
       },0);
     };
 
     $scope.statsModal = function(field) {
-      $scope.modalField = field;
-      showModal(
-        '{"field":"'+field+'"}','statistics');
+      $scope.closeFacet();
+      $timeout(function() {
+        $scope.modalField = field;
+        $scope.adhocOpts = {
+          height: "200px",
+          field: field,
+          mode: 'mean',
+          span: $scope.panel.span,
+          type: 'stats',
+          title: 'Statistics for ' + field
+        };
+        showModal(
+          angular.toJson($scope.adhocOpts),'stats');
+      },0);
     };
 
     var showModal = function(panel,type) {
       $scope.facetPanel = panel;
       $scope.facetType = type;
-
-      // create a new modal. Can't reuse one modal unforunately as the directive will not
-      // re-render on show.
-      /*
-      $modal({
-        template: './app/panels/table/modal.html',
-        persist: false,
-        show: true,
-        scope: $scope.$new(),
-        keyboard: false
-      });
-      */
-
     };
-
-
 
     $scope.toggle_micropanel = function(field,groups) {
       var docs = _.map($scope.data,function(_d){return _d.kibana._source;});
@@ -210,6 +215,26 @@ function (angular, app, _, kbn, moment) {
         limit: 10,
         count: _.countBy(docs,function(doc){return _.contains(_.keys(doc),field);})['true']
       };
+
+
+      var nodeInfo = $scope.ejs.client.get('/' + dashboard.indices + '/_mapping/field/' + field,
+        undefined, undefined, function(data, status) {
+        console.log(status);
+        return;
+      });
+
+      return nodeInfo.then(function(p) {
+        var types = _.uniq(jsonPath(p, '*.*.*.*.mapping.*.type'));
+        if (_.isArray(types)) {
+          $scope.micropanel.type = types.join(', ');
+        }
+
+
+        if(_.intersection(types, ['long','float','integer','double']).length > 0) {
+          $scope.micropanel.hasStats =  true;
+        }
+      });
+
     };
 
     $scope.micropanelColor = function(index) {
@@ -289,9 +314,9 @@ function (angular, app, _, kbn, moment) {
         return;
       }
 
-      sort = [$scope.ejs.Sort($scope.panel.sort[0]).order($scope.panel.sort[1])];
+      sort = [$scope.ejs.Sort($scope.panel.sort[0]).order($scope.panel.sort[1]).ignoreUnmapped(true)];
       if($scope.panel.localTime) {
-        sort.push($scope.ejs.Sort($scope.panel.timeField).order($scope.panel.sort[1]));
+        sort.push($scope.ejs.Sort($scope.panel.timeField).order($scope.panel.sort[1]).ignoreUnmapped(true));
       }
 
 

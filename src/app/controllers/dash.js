@@ -25,6 +25,9 @@ function (angular, config, _) {
     $scope.panelMoveOver = panelMove.onOver;
     $scope.panelMoveOut = panelMove.onOut;
 
+    angular.element(window).bind('resize', function(){
+      $scope.$broadcast('render');
+    });
 
     $scope.init = function() {
       $scope.config = config;
@@ -39,6 +42,7 @@ function (angular, config, _) {
       alertSrv.clearAll();
 
       // Provide a global list of all seen fields
+        //TODO: how come this becomes global? and how does this get updated?
       $scope.fields = fields;
       $scope.reset_row();
 

@@ -42,10 +42,12 @@ require.config({
     'jquery.flot.stackpercent':'../vendor/jquery/jquery.flot.stackpercent',
     'jquery.flot.time':       '../vendor/jquery/jquery.flot.time',
     'jquery.flot.byte':       '../vendor/jquery/jquery.flot.byte',
+    'jquery.color':       '../vendor/jquery/jquery.color-2.1.0',
 
 
     modernizr:                '../vendor/modernizr-2.6.1',
-    numeral:                '../vendor/numeral',
+    numeral:                  '../vendor/numeral',
+    jsonpath:                 '../vendor/jsonpath',
     elasticjs:                '../vendor/elasticjs/elastic-angular-client',
   },
   shim: {
@@ -60,6 +62,10 @@ require.config({
 
     modernizr: {
       exports: 'Modernizr'
+    },
+
+    jsonpath: {
+      exports: 'jsonPath'
     },
 
     jquery: {

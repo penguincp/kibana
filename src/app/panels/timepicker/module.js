@@ -25,7 +25,7 @@ function (angular, app, _, moment, kbn) {
   var module = angular.module('kibana.panels.timepicker', []);
   app.useModule(module);
 
-  module.controller('timepicker', function($scope, $modal, $q, filterSrv) {
+  module.controller('timepicker', function($scope, $modal, $q,dashboard,filterSrv,kbnIndex) {
     $scope.panelMeta = {
       status  : "Stable",
       description : "A panel for controlling the time range filters. If you have time based data, "+
@@ -72,20 +72,64 @@ function (angular, app, _, moment, kbn) {
       }
     };
 
+    $scope.set_selected_customer=function(){
+        $scope.get_existing_nodes_for_customer();
+     };
+
+     $scope.update_date_range=function(){
+         var range;
+         var selected_nodes =_.pluck(_.select($scope.existing_nodes, "selected"), 'name');
+         if(_.isEmpty(selected_nodes) || _.contains(selected_nodes,kbnIndex.get_all_const())){
+             range=kbnIndex.indexStartEndTime($scope.selected_customer);
+         }else{
+             range=kbnIndex.indexStartEndTimeOfNodes($scope.selected_customer,selected_nodes);
+         }
+         $scope.temptime =
+             getScopeTimeObj(range[0],range[1]);
+
+         //Date picker needs the date to be at the start of the day
+         $scope.temptime.from.date.setHours(0,0,0,0);
+         $scope.temptime.to.date.setHours(0,0,0,0);
+
+         // This is an ugly hack, but works.
+         if(new Date().getTimezoneOffset() < 0) {
+             $scope.temptime.from.date = moment($scope.temptime.from.date).add('days',1).toDate();
+             $scope.temptime.to.date = moment($scope.temptime.to.date).add('days',1).toDate();
+         }
+
+         $scope.panel.now=false;
+
+     };
+
+     $scope.get_existing_nodes_for_customer=function(){
+         var nodes=kbnIndex.get_nodes($scope.selected_customer);
+         $scope.existing_nodes= _.map(nodes,function(n){
+             return {
+                 "name":n,
+                 "selected":false
+             }
+         });
+
+         $scope.show_in_rows=1;
+         $scope.rows_options=[];
+         var i=1;
+         _.each($scope.existing_nodes,function(v){
+             $scope.rows_options.push(i++);
+         });
+     }
+
     $scope.customTime = function() {
       // Assume the form is valid since we're setting it to something valid
       $scope.input.$setValidity("dummy", true);
-      $scope.temptime = cloneTime($scope.time);
+      if(_.isEmpty($scope.temptime)) {
+          var range=kbnIndex.indexStartEndTime($scope.selected_customer);
+          $scope.temptime =getScopeTimeObj(range[0],range[1]);
+      }
 
-      //Date picker needs the date to be at the start of the day
-      $scope.temptime.from.date.setHours(0,0,0,0);
-      $scope.temptime.to.date.setHours(0,0,0,0);
-
-
-      // This is an ugly hack, but works.
-      if(new Date().getTimezoneOffset() < 0) {
-        $scope.temptime.from.date = moment($scope.temptime.from.date).add('days',1).toDate();
-        $scope.temptime.to.date = moment($scope.temptime.to.date).add('days',1).toDate();
+      $scope.existing_customers=kbnIndex.get_existing_customers();
+      if(_.isEmpty($scope.selected_customer)) {
+          $scope.selected_customer = $scope.existing_customers[0];
+          $scope.set_selected_customer();
       }
 
       $q.when(customTimeModal).then(function(modalEl) {
@@ -124,14 +168,16 @@ function (angular, app, _, moment, kbn) {
       $scope.time.to = getTimeObj(new Date());
     };
 
+
     /*
       time : {
         from: Date
         to: Date
       }
     */
-    $scope.setAbsoluteTimeFilter = function (time) {
+    $scope.setAbsoluteTimeFilter = function () {
 
+      var time=$scope.validate($scope.temptime);
       // Create filter object
       var _filter = _.clone(time);
 
@@ -144,15 +190,126 @@ function (angular, app, _, moment, kbn) {
 
       // Clear all time filters, set a new one
       filterSrv.removeByType('time',true);
-
-      // Set the filter
+      $scope.time = getScopeTimeObj(time.from,time.to);
+      kbnIndex.set_selected_customer($scope.selected_customer);
       $scope.panel.filter_id = filterSrv.set(_filter);
 
-      // Update our representation
-      $scope.time = getScopeTimeObj(time.from,time.to);
+      var selected_nodes =_.pluck(_.select($scope.existing_nodes, "selected"), 'name');
+      create_panels_for_nodes(selected_nodes);
 
       return $scope.panel.filter_id;
     };
+
+    function create_panels_for_nodes(nodes){
+          if(_.isEmpty(nodes)){
+              return;
+          }
+
+          var rows=dashboard.current.rows;
+
+          var row, panel;
+        _.find(rows, function(r){
+            if (_.isEmpty(r.panels)){
+                return;
+            }
+
+            panel=_.find(r.panels,function(p){
+                 return p.type==="histogram";
+            });
+
+            if(!_.isEmpty(panel)){
+                row=r;
+                return;
+            }
+        });
+
+        if(_.isEmpty(panel)){
+            row=rows[0];
+            row.panels=[];
+            //copied from logstash.json
+            panel={
+                "span": 12,
+                "editable": true,
+                "group": [
+                    "default"
+                ],
+                "type": "histogram",
+                "mode": "aggregate",
+                "time_field": "@timestamp",
+                "value_field": "event",
+                "auto_int": true,
+                "resolution": 100,
+                "interval": "10m",
+                "fill": 3,
+                "linewidth": 3,
+                "timezone": "browser",
+                "spyable": true,
+                "zoomlinks": true,
+                "bars": true,
+                "stack": true,
+                "points": false,
+                "lines": false,
+                "legend": true,
+                "x-axis": true,
+                "y-axis": true,
+                "percentage": false,
+                "interactive": true,
+                "queries": {
+                    "mode": "all",
+                    "ids": [
+                        0
+                    ]
+                },
+                "title": "Events over time",
+                "intervals": [
+                    "auto",
+                    "1s",
+                    "1m",
+                    "5m",
+                    "10m",
+                    "30m",
+                    "1h",
+                    "3h",
+                    "12h",
+                    "1d",
+                    "1w",
+                    "1M",
+                    "1y"
+                ],
+                "options": true,
+                "tooltip": {
+                    "value_type": "cumulative",
+                    "query_as_alias": false
+                }
+            }
+            row.panels.push(panel);
+        };
+
+        if(nodes.length<row.panels.length){
+            row.panels.splice(nodes.length);
+        }
+
+        var span=12;
+        if($scope.show_in_rows!=nodes.length){
+            var nodes_in_one_row=Math.round(nodes.length/$scope.show_in_rows);
+            span=Math.floor(12/nodes_in_one_row);
+        }
+
+        var i=0;
+        _.each(row.panels,function(p){
+            p.node=nodes[i++];
+            p.span=span;
+        });
+         _.each(nodes.slice(i),function(n){
+                 var cp= angular.copy(panel);
+                 cp.node=n;
+                 cp.span=span;
+                 row.panels.push(cp);
+                }
+            );
+        };
+
+
 
     $scope.setRelativeFilter = function(timespan) {
 

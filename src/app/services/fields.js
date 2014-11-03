@@ -48,7 +48,10 @@ function (angular, _, config) {
     };
 
     this.map = function(indices) {
-      var request = ejs.client.get('/' + indices.join(',') + "/_mapping",
+        //TODO: if there are too many indices, indices.join(',') will exceed http get length minutes
+        //since now indices are determined by customer and node, assuem indexes are of the same mapping
+//      var request = ejs.client.get('/' + indices.join(',') + "/_mapping",
+        var request = ejs.client.get('/' + indices[0] + "/_mapping",
         undefined, undefined, function(data, status) {
           if(status === 0) {
             alertSrv.set('Error',"Could not contact Elasticsearch at "+ejs.config.server+
