@@ -7,7 +7,6 @@ define([
   './querySrv',
   './timer',
   './panelMove',
-  './esVersion',
-  './json2csv'
+  './esVersion'
 ],
 function () {});

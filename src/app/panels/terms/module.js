@@ -47,7 +47,7 @@ function (angular, app, _, $, kbn) {
       /** @scratch /panels/terms/5
        * === Parameters
        *
-       * field:: The field on which to computer the facet
+       * field:: The field on which to compute the facet
        */
       field   : '_type',
       /** @scratch /panels/terms/5
@@ -84,7 +84,7 @@ function (angular, app, _, $, kbn) {
        */
       tilt    : false,
       /** @scratch /panels/terms/5
-       * lables:: In pie chart mode, draw labels in the pie slices
+       * labels:: In pie chart mode, draw labels in the pie slices
        */
       labels  : true,
       /** @scratch /panels/terms/5
@@ -255,10 +255,14 @@ function (angular, app, _, $, kbn) {
     return {
       restrict: 'A',
       link: function(scope, elem) {
-        var plot;
 
         // Receive render events
         scope.$on('render',function(){
+          render_panel();
+        });
+
+        // Re-render if the window is resized
+        angular.element(window).bind('resize', function(){
           render_panel();
         });
 
@@ -288,12 +292,12 @@ function (angular, app, _, $, kbn) {
 
         // Function for rendering panel
         function render_panel() {
-          var chartData;
+          var plot, chartData;
 
           build_results();
 
           // IE doesn't work without this
-          elem.css({height:scope.panel.height||scope.row.height});
+          elem.css({height:scope.row.height});
 
           // Make a clone we can operate on.
           chartData = _.clone(scope.data);
@@ -329,12 +333,9 @@ function (angular, app, _, $, kbn) {
               }
               if(scope.panel.chart === 'pie') {
                 var labelFormat = function(label, series){
-//                  return '<div ng-click="build_search(panel.field,\''+label+'\')'+
-//                    ' "style="font-size:8pt;text-align:center;padding:2px;color:white;">'+
-//                    label+'<br/>'+Math.round(series.percent)+'%</div>';
-
-                    return '<div style="font-size:8pt;text-align:center;padding:2px;color:white;">'+
-                        label+'<br/>'+Math.round(series.percent)+'%</div>';
+                  return '<div ng-click="build_search(panel.field,\''+label+'\')'+
+                    ' "style="font-size:8pt;text-align:center;padding:2px;color:white;">'+
+                    label+'<br/>'+Math.round(series.percent)+'%</div>';
                 };
 
                 plot = $.plot(elem, chartData, {

@@ -1,34 +1,15 @@
 <div class="editor-row">
-
-  <div class="section">
-    <h5>Index</h5>
-      <div class="editor-option">
-          <label class="small">Node</label>
-          <select ng-change="set_refresh(true)" class="input-small" ng-model="panel.node" ng-options="f for f in existing_nodes"></select>
-      </div>
-  </div>
-
-  <br>
-
   <div class="section">
     <h5>Values</h5>
     <div class="editor-option">
       <label class="small">Chart value</label>
-      <select ng-change="set_refresh(true)" class="input-small" ng-model="panel.mode" ng-options="f for f in ['count','aggregate']"></select>
+      <select ng-change="set_refresh(true)" class="input-small" ng-model="panel.mode" ng-options="f for f in ['count','min','mean','max','total']"></select>
     </div>
     <div class="editor-option" ng-show="panel.mode != 'count'">
-      <label class="small">Aggregate on Field</label>
-      <input ng-change="set_refresh(true)" placeholder="Start typing" bs-typeahead="fields.list" type="text" class="input-medium" ng-model="panel.value_field">
-    </div>
-    <div class="editor-option" ng-show="panel.mode != 'count' && panel.value_field === 'event'">
-        <label class="small">Further Aggregate On</label>
-        <input ng-change="set_refresh(true)" placeholder="Start typing" bs-typeahead="fields.list" type="text" class="input-medium" ng-model="panel.agg2">
+      <label class="small">Value Field <tip>This field must contain a numeric value</tip></label>
+        <input ng-change="set_refresh(true)" placeholder="Start typing" bs-typeahead="fields.list" type="text" class="input-medium" ng-model="panel.value_field">
     </div>
   </div>
-
-</div>
-<div class="editor-row">
-
   <div class="section">
     <h5>Transform Series</h5>
     <div class="editor-option" ng-show="panel.mode != 'count'">
@@ -40,9 +21,6 @@
     </div>
     <div class="editor-option">
       <label class="small">Derivative <tip>Plot the change per interval in the series</tip></label><input type="checkbox" ng-model="panel.derivative" ng-checked="panel.derivative" ng-change="set_refresh(true)">
-    </div>
-    <div class="editor-option">
-      <label class="small">Zero fill <tip>Fills zeros in gaps.</tip></label><input type="checkbox" ng-model="panel.zerofill" ng-checked="panel.zerofill" ng-change="set_refresh(true)">
     </div>
   </div>
   <div class="section">

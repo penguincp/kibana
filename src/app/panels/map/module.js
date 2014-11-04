@@ -64,7 +64,7 @@ function (angular, app, _, $) {
        */
       size    : 100,
       /** @scratch /panels/map/3
-       * exclude:: exclude this array of regions. For example [`US',`BR',`IN']
+       * exclude:: Exclude this array of regions. For example [`US',`BR',`IN']
        */
       exclude : [],
       /** @scratch /panels/map/3
@@ -145,8 +145,8 @@ function (angular, app, _, $) {
       $scope.inspector = angular.toJson(JSON.parse(request.toString()),true);
     };
 
-    $scope.build_search = function(field, value) {
-      filterSrv.set({type:'field', field:field, query:value, mandate:"must"});
+    $scope.build_search = function(field,value) {
+      filterSrv.set({type:'terms',field:field,value:value,mandate:"must"});
     };
 
   });
@@ -161,16 +161,19 @@ function (angular, app, _, $) {
 
         // Receive render events
         scope.$on('render',function(){
-          slow();
+          render_panel();
         });
 
-        elem.closest('.panel').resize(function () {
-          elem.empty();
+        // Or if the window is resized
+        angular.element(window).bind('resize', function(){
+          render_panel();
         });
 
         function render_panel() {
-          elem.empty();
-          elem.css({height:scope.panel.height||scope.row.height});
+          elem.css({height:scope.row.height});
+
+          elem.text('');
+
           $('.jvectormap-zoomin,.jvectormap-zoomout,.jvectormap-label').remove();
           require(['./panels/map/lib/map.'+scope.panel.map], function () {
             elem.vectorMap({
@@ -191,7 +194,7 @@ function (angular, app, _, $) {
                 elem.children('.map-legend').text(label.text() + ": " + count);
               },
               onRegionOut: function() {
-                elem.children('.map-legend').hide();
+                $('.map-legend').hide();
               },
               onRegionClick: function(event, code) {
                 var count = _.isUndefined(scope.data[code]) ? 0 : scope.data[code];
@@ -202,11 +205,9 @@ function (angular, app, _, $) {
             });
             elem.prepend('<span class="map-legend"></span>');
 
-            elem.children('.map-legend').hide();
+            $('.map-legend').hide();
           });
         }
-
-        var slow = _.debounce(render_panel, 200);
       }
     };
   });

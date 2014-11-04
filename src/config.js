@@ -41,8 +41,7 @@ function (Settings) {
      *
      * default_route: '/dashboard/elasticsearch/WebLogs',
      */
-    default_route     : '/dashboard/file/logstash.json',
-        //'/dashboard/file/default.json',
+    default_route     : '/dashboard/file/default.json',
 
     /** @scratch /configuration/config.js/5
      *
@@ -75,7 +74,6 @@ function (Settings) {
       'query',
       'terms',
       'stats',
-      'agg_stats',
       'sparklines'
     ]
   });

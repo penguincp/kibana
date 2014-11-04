@@ -1,16 +1,9 @@
-<div class="modal-body" xmlns="http://www.w3.org/1999/html">
+  <div class="modal-body">
     <style>
       .timepicker-to-column {
         margin-top: 10px;
       }
 
-      .node-option{
-          margin-left: 10px;
-      }
-
-      .rows-option{
-          width:60px
-      }
       .timepicker-input input {
         outline: 0 !important;
         border: 0px !important;
@@ -56,7 +49,7 @@
 
         <div class="timepicker-to-column">
 
-          <label class="small">To (<a class="link" ng-class="{'strong':panel.now}" ng-click="setNow();panel.now=false">now</a>)</label>
+          <label class="small">To (<a class="link" ng-class="{'strong':panel.now}" ng-click="setNow();panel.now=true">now</a>)</label>
 
           <div class="fake-input timepicker-input">
             <div ng-hide="panel.now">
@@ -67,30 +60,8 @@
               <input class="timepicker-ms" type="text" maxlength="3" ng-change="validate(temptime)" ng-model="temptime.to.millisecond" required ng-pattern="patterns.millisecond" onClick="this.select();"/>
             </div>
             <span type="text" ng-show="panel.now" ng-disabled="panel.now">&nbsp <i class="pointer icon-remove-sign" ng-click="setNow();panel.now=false"></i> Right Now <input type="text" name="dummy" style="visibility:hidden" /></span>
-
           </div>
         </div>
-
-        <div class="section">
-
-               <label class="small">Customer</label>
-               <div class="editor-option">
-                    <select ng-model="selected_customer" ng-options="c for c in existing_customers" ng-change="set_selected_customer()"/>
-                </div>
-
-                <div class="editor-option">
-                    <button ng-click="update_date_range()" class="btn btn-success">Reset Time</button>
-                </div>
-        </div>
-
-         <div class="section"  ng-show="selected_customer != 'All'">
-             <label>Show the following nodes </label>
-             <label class="node-option"  ng-repeat="n in existing_nodes">
-                 <input type='checkbox' ng-model="n.selected">  {{n.name}}
-             </label>
-             IN  <select class="rows-option" ng-model="show_in_rows" ng-options="c for c in rows_options"/> rows
-        </div>
-
 
         </form>
         <div class="clearfix"></div>
@@ -100,7 +71,7 @@
   <div class="modal-footer">
     <form name="input" style="margin-bottom:0">
     <span class="" ng-hide="input.$valid">Invalid date or range</span>
-    <button ng-click="setAbsoluteTimeFilter();dismiss();" ng-disabled="!input.$valid" class="btn btn-success">Apply</button>
+    <button ng-click="setAbsoluteTimeFilter(validate(temptime));dismiss();" ng-disabled="!input.$valid" class="btn btn-success">Apply</button>
     <button ng-click="dismiss();" class="btn btn-danger">Cancel</button>
 
     </form>

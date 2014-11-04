@@ -7,9 +7,9 @@ function (angular,$) {
 
   angular
     .module('kibana.directives')
-    .directive('kibanaPanel', function($compile, $rootScope) {
-      var container = '<div class="panel-container"></div>';
-      var content = '<div class="panel-content" ng-style="{\'min-height\':row.height}"></div>';
+    .directive('kibanaPanel', function($compile) {
+      var container = '<div class="panel-container" ng-style="{\'min-height\':row.height}"></div>';
+      var content = '<div class="panel-content"></div>';
 
       var panelHeader =
       '<div class="panel-header">'+
@@ -42,19 +42,14 @@ function (angular,$) {
                 '}"  ng-model="row.panels"><i class="icon-move"></i></span>'+
             '</span>' +
 
-            '<span class="row-button extra" ng-click="editor.index = 1" ng-show="panel.editable != false">' +
+            '<span class="row-button extra" ng-show="panel.editable != false">' +
               '<span config-modal="./app/partials/paneleditor.html" kbn-model="panel" class="pointer">'+
               '<i class="icon-cog pointer" bs-tooltip="\'Configure\'"></i></span>'+
             '</span>' +
 
-            '<span class="row-button extra" ng-show="panel.editable != false">' +
-              '<span ng-click="duplicate_panel(panel)" class="pointer">'+
-              '<i class="icon-copy pointer" bs-tooltip="\'Duplicate\'"></i></span>'+
-            '</span>' +
-
             '<span ng-repeat="task in panelMeta.modals" class="row-button extra" ng-show="task.show">' +
               '<span bs-modal="task.partial" class="pointer"><i ' +
-                'bs-tooltip="task.description" ng-class="task.icon" class="pointer" ng-click="task.click()"></i></span>'+
+                'bs-tooltip="task.description" ng-class="task.icon" class="pointer"></i></span>'+
             '</span>' +
 
             '<span class="row-button extra" ng-show="panelMeta.loading == true">' +
@@ -64,23 +59,18 @@ function (angular,$) {
             '</span>' +
 
             '<span class="panel-text panel-title">' +
-              '{{panel.title?panel.title:panel.type}}' + '{{panel.node?"@"+panel.node:""}}'
+              '{{panel.title?panel.title:panel.type}}' +
             '</span>'+
 
           '</div>'+
         '</div>\n'+
       '</div>';
       return {
-        restrict: 'A',
-        replace: true,
+        restrict: 'E',
         link: function($scope, elem, attr) {
           // once we have the template, scan it for controllers and
           // load the module.js if we have any
           var newScope = $scope.$new();
-
-          elem.parent().parent().parent().resize(function() {
-            $rootScope.$broadcast('render');
-          });
 
           $scope.kbnJqUiDraggableOptions = {
             revert: 'invalid',
@@ -93,7 +83,7 @@ function (angular,$) {
           // compile the module and uncloack. We're done
           function loadModule($module) {
             $module.appendTo(elem);
-            elem.wrapInner(container);
+            elem.wrap(container);
             /* jshint indent:false */
             $compile(elem.contents())(newScope);
             elem.removeClass("ng-cloak");

@@ -49,9 +49,9 @@
             "default"
           ],
           "type": "histogram",
-          "mode": "aggregate",
+          "mode": "count",
           "time_field": "@timestamp",
-          "value_field": "event",
+          "value_field": null,
           "auto_int": true,
           "resolution": 100,
           "interval": "10m",
@@ -73,26 +73,6 @@
             "mode": "all",
             "ids": [
               0
-            ]
-          },
-          "download":{
-             "mode":"Result",
-            "fields":[
-                {"name":"timestamp", "selected":true},
-                {"name":"event", "selected":true},
-                {"name":"subevent", "selected":true},
-                {"name":"message", "selected":true},
-                {"name":"msg", "selected":true},
-                {"name":"exClass", "selected":true},
-                {"name":"ex", "selected":true},
-                {"name":"exMethod", "selected":true},
-                {"name":"exLine", "selected":true},
-                {"name":"logClass", "selected":true},
-                {"name":"logClassLine", "selected":true},
-                {"name":"node", "selected":true},
-                {"name":"path", "selected":false},
-                {"name":"customer", "selected":false},
-                {"name":"@timestamp", "selected":false}
             ]
           },
           "title": "Events over time",
@@ -119,12 +99,62 @@
         }
       ],
       "notice": false
-    }],
+    },
+    {
+      "title": "Events",
+      "height": "350px",
+      "editable": true,
+      "collapse": false,
+      "collapsable": true,
+      "panels": [
+        {
+          "title": "All events",
+          "error": false,
+          "span": 12,
+          "editable": true,
+          "group": [
+            "default"
+          ],
+          "type": "table",
+          "size": 100,
+          "pages": 5,
+          "offset": 0,
+          "sort": [
+            "@timestamp",
+            "desc"
+          ],
+          "style": {
+            "font-size": "9pt"
+          },
+          "overflow": "min-height",
+          "fields": [],
+          "localTime": true,
+          "timeField": "@timestamp",
+          "highlight": [],
+          "sortable": true,
+          "header": true,
+          "paging": true,
+          "spyable": true,
+          "queries": {
+            "mode": "all",
+            "ids": [
+              0
+            ]
+          },
+          "field_list": true,
+          "status": "Stable",
+          "trimFactor": 300,
+          "normTimes": true
+        }
+      ],
+      "notice": false
+    }
+  ],
   "editable": true,
   "failover": false,
   "index": {
     "interval": "day",
-    "pattern": "[logstash-(.*)-(.*)-](YYYY.MM.DD)",
+    "pattern": "[logstash-]YYYY.MM.DD",
     "default": "NO_TIME_FILTER_OR_INDEX_PATTERN_NOT_MATCHED"
   },
   "style": "{{ARGS.style || 'dark'}}",
