@@ -40,13 +40,37 @@
       }
     </style>
 
+    <div class="section">
+        <h5>Time Options</h5>
+        <div class="editor-option">
+            <label class="small">Time Field</label>
+            <input ng-change="set_refresh(true)" placeholder="Start typing" bs-typeahead="fields.list" type="text" class="input-small" ng-model="panel.timefield">
+        </div>
+        <div class="editor-option">
+            <label class="small">Time Zone</label>
+            <select ng-model="panel.timezone" class='input-small' ng-options="f for f in ['utc']"></select>
+        </div>
+        <div class="editor-option">
+            <label class="small">Auto-interval</label><input type="checkbox" ng-model="panel.auto_int" ng-checked="panel.auto_int" />
+        </div>
+        <div class="editor-option" ng-show='panel.auto_int'>
+            <label class="small">Resolution <tip>Shoot for this many data points, rounding to sane intervals</tip></label>
+            <input type="number" class='input-mini' ng-model="panel.resolution" ng-change='set_refresh(true)'/>
+        </div>
+        <div class="editor-option" ng-hide='panel.auto_int'>
+            <label class="small">Interval <tip>Use Elasticsearch date math format (eg 1m, 5m, 1d, 2w, 1y)</tip></label>
+            <input type="text" class='input-mini' ng-model="panel.interval" ng-change='set_refresh(true)'/>
+        </div>
+    </div>
+
     <div class="timepicker form-horizontal">
         <form name="input">
 
         <div class="timepicker-from-column">
           <label class="small">From</label>
           <div class="fake-input timepicker-input">
-            <input class="timepicker-date" type="text" ng-change="validate(temptime)" ng-model="temptime.from.date" data-date-format="yyyy-mm-dd" required bs-datepicker />@
+              <!--ng-change="validate(temptime)"-->
+            <input class="timepicker-date" type="text" ng-change="validate(temptime)"  ng-model="temptime.from.date" data-date-format="yyyy-mm-dd" required bs-datepicker />@
             <input class="timepicker-hms" type="text" maxlength="2" ng-change="validate(temptime)" ng-model="temptime.from.hour" required ng-pattern="patterns.hour" onClick="this.select();"/>:
             <input class="timepicker-hms" type="text" maxlength="2" ng-change="validate(temptime)" ng-model="temptime.from.minute" required ng-pattern="patterns.minute" onClick="this.select();"/>:
             <input class="timepicker-hms" type="text" maxlength="2" ng-change="validate(temptime)" ng-model="temptime.from.second" required ng-pattern="patterns.second" onClick="this.select();"/>.
@@ -60,6 +84,7 @@
 
           <div class="fake-input timepicker-input">
             <div ng-hide="panel.now">
+                <!--ng-change="validate(temptime)"-->
               <input class="timepicker-date" type="text" ng-change="validate(temptime)" ng-model="temptime.to.date" data-date-format="yyyy-mm-dd" required bs-datepicker />@
               <input class="timepicker-hms" type="text" maxlength="2" ng-change="validate(temptime)" ng-model="temptime.to.hour" required ng-pattern="patterns.hour" onClick="this.select();"/>:
               <input class="timepicker-hms" type="text" maxlength="2" ng-change="validate(temptime)" ng-model="temptime.to.minute" required ng-pattern="patterns.minute" onClick="this.select();"/>:
@@ -71,29 +96,28 @@
           </div>
         </div>
 
-        <div class="section">
 
-               <label class="small">Customer</label>
-               <div class="editor-option">
-                    <select ng-model="selected_customer" ng-options="c for c in existing_customers" ng-change="set_selected_customer()"/>
-                </div>
+        </form>
+    </div>
 
-                <div class="editor-option">
-                    <button ng-click="update_date_range()" class="btn btn-success">Reset Time</button>
-                </div>
+    <div class="section">
+       <div class="editor-option">
+           <label class="small">Customer</label>
+            <select ng-model="selected_customer" ng-options="c for c in existing_customers" ng-change="set_selected_customer()"/>
+
+            <button ng-click="update_date_range()" class="btn btn-success">Reset Time</button>
         </div>
+    </div>
 
-         <div class="section"  ng-show="selected_customer != 'All'">
+    <div class="section"  ng-show="selected_customer != 'All'">
              <label>Show the following nodes </label>
              <label class="node-option"  ng-repeat="n in existing_nodes">
                  <input type='checkbox' ng-model="n.selected">  {{n.name}}
              </label>
              IN  <select class="rows-option" ng-model="show_in_rows" ng-options="c for c in rows_options"/> rows
-        </div>
+    </div>
 
-
-        </form>
-        <div class="clearfix"></div>
+    <div class="clearfix"></div>
     </div>
   </div>
 

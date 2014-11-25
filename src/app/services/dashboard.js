@@ -64,6 +64,7 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
       refresh: false
     };
 
+    var _dashdefault;
     // An elasticJS client to use
     var ejs = ejsResource(config.elasticsearch);
 
@@ -154,7 +155,6 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
 
       var colorpads={};
       this.get_color=function(label,idx) {
-
           if(_.isUndefined(colorpads[label])){
               colorpads[label]=colors[_.size(colorpads)];
           }
@@ -215,6 +215,13 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
       return _.cloneDeep(dashboard);
     };
 
+    this.getDashDefault=function(){
+      return _.clone(_dashdefault);
+    }
+
+    this.getTimeOptionDefault=function(){
+     return _dashdefault.timeoption;
+    }
     this.dash_load = function(dashboard) {
       // Cancel all timers
       timer.cancel_all();
@@ -368,6 +375,7 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
         if(!result) {
           return false;
         }
+        _dashdefault=_.cloneDeep(result.data);
         self.dash_load(dash_defaults(result.data));
         return true;
       },function() {

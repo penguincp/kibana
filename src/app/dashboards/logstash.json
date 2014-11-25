@@ -50,14 +50,10 @@
           ],
           "type": "histogram",
           "mode": "aggregate",
-          "time_field": "@timestamp",
           "value_field": "event",
-          "auto_int": true,
-          "resolution": 100,
           "interval": "10m",
           "fill": 3,
           "linewidth": 3,
-          "timezone": "browser",
           "spyable": true,
           "zoomlinks": true,
           "bars": true,
@@ -89,10 +85,11 @@
                 {"name":"exLine", "selected":true},
                 {"name":"logClass", "selected":true},
                 {"name":"logClassLine", "selected":true},
+                {"name":"level", "selected":true},
                 {"name":"node", "selected":true},
+                {"name":"@timestamp", "selected":true},
                 {"name":"path", "selected":false},
-                {"name":"customer", "selected":false},
-                {"name":"@timestamp", "selected":false}
+                {"name":"customer", "selected":false}
             ]
           },
           "title": "Events over time",
@@ -145,36 +142,41 @@
       "notice": false
     }
   ],
+  "timeoption":{
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ],
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "timefield": "@timestamp",
+    "timezone"      : "utc",
+    "auto_int"      : true,
+    "resolution"    : 100
+  },
   "nav": [
     {
       "type": "timepicker",
       "collapse": false,
       "notice": false,
       "status": "Stable",
-      "time_options": [
-        "5m",
-        "15m",
-        "1h",
-        "6h",
-        "12h",
-        "24h",
-        "2d",
-        "7d",
-        "30d"
-      ],
-      "refresh_intervals": [
-        "5s",
-        "10s",
-        "30s",
-        "1m",
-        "5m",
-        "15m",
-        "30m",
-        "1h",
-        "2h",
-        "1d"
-      ],
-      "timefield": "@timestamp",
       "now": true,
       "filter_id": 0
     }

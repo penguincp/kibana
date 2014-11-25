@@ -41,8 +41,8 @@ function (angular, _, config, moment) {
       this.indexStartEndTimeOfNodes=function(customer_name,nodeNames){
 
           var node_indices=existing_indices[customer_name];
-          var start_date=moment("2099.01.01","YYYY.MM.DD").toDate();
-          var end_date=moment("1970.01.01" ,"YYYY.MM.DD").toDate();
+          var start_date=moment("2099.01.01 +0000","YYYY.MM.DD Z").toDate();
+          var end_date=moment("1970.01.01 +0000" ,"YYYY.MM.DD Z").toDate();
 
 
           _.each(node_indices,function(nodeIndex,name){
@@ -67,7 +67,7 @@ function (angular, _, config, moment) {
                   end_date= _.last( nodeIndex["dates"]);
               }
 
-              end_date= moment(end_date).add('days',2).toDate();
+              end_date= moment(end_date).add('days',1).toDate();
           });
 
           return [start_date,end_date];
@@ -151,16 +151,28 @@ function (angular, _, config, moment) {
 
       }
 
-    this.indices = function(from,to,pattern,interval,selected_node) {
+      var getUTCDate = function (date) {
+          var dateStr = date.getUTCFullYear() + '-' + (date.getUTCMonth() + 1) + '-' + date.getUTCDate();
+
+          return moment(dateStr + " +0000", "YYYY-MM-DD Z").toDate();
+      };
+
+    this.indices = function(_from,_to,pattern,interval,selected_node) {
       if(_.isEmpty(existing_indices)){
-          get_all_indices(pattern,interval).then(function(p) {
+          getAllIndices(pattern,interval).then(function(p) {
             return [];
           })
       };
 
-      var possible = [];
-      var patterns=[];
+    var from= getUTCDate(_from);
+    var to= getUTCDate(_to);
 
+    var regex=_.clone(pattern);
+    regex=regex.replace(/[Y|M|D]/g,'\\d');
+    regex=regex.replace(/\[|\]/g,"");
+    regex=new RegExp(regex);
+
+      var possible = [];
       if(_.isEmpty(selected_node)){
           selected_node=all_const;
       }
@@ -189,7 +201,14 @@ function (angular, _, config, moment) {
                     }
                 };
 
-                possible=_.union(possible,node_indices["names"]);
+                _.each(node_indices["names"],function(index){
+                    var nameParts=parseIndexName(regex,index);
+                    var date= moment(nameParts[2]+" +0000","YYYY.MM.DD Z").toDate();
+                    if(date<=to && date>=from){
+                        possible.push(index);
+                    }
+                });
+                //possible=_.union(possible,node_indices["names"]);
 
             });
       });
@@ -211,7 +230,7 @@ function (angular, _, config, moment) {
           return [];
       };
 
-      function parse_index_name(regex,index_name){
+      function parseIndexName(regex,index_name){
           var match = regex.exec(index_name);
           //if not match, return null, not undefined, thus use isEmpty()
           if(!_.isEmpty(match)) {
@@ -219,7 +238,7 @@ function (angular, _, config, moment) {
           }
       }
       //get all indices
-      function get_all_indices(pattern,interval) {
+      function getAllIndices(pattern,interval) {
           var something;
           something = ejs.client.get("/_aliases?ignore_missing=true",
               undefined, undefined, errorcb);
@@ -232,7 +251,7 @@ function (angular, _, config, moment) {
           return something.then(function(p) {
 
               _.each(p, function(alias,index_name) {
-                  var name_parts=parse_index_name(regex,index_name);
+                  var name_parts=parseIndexName(regex,index_name);
                   if(_.isUndefined(name_parts)){
                       return;
                   }
@@ -255,7 +274,8 @@ function (angular, _, config, moment) {
                       node_indices["dates"]=[];
                   }
                   var dates=node_indices["dates"];
-                  dates.push(moment(date,"YYYY.MM.DD").toDate());
+                  //date in an index name is UTC
+                  dates.push(moment(date+" +0000","YYYY.MM.DD Z").toDate());
 
                   if(_.isUndefined(node_indices["names"])){
                       node_indices["names"]=[];
@@ -267,8 +287,8 @@ function (angular, _, config, moment) {
 
               });
 
-              existing_indices.start_date=moment( "2099.01.01","YYYY.MM.DD").toDate();
-              existing_indices.end_date=moment( "1970.01.01","YYYY.MM.DD").toDate();
+              existing_indices.start_date=moment( "2099.01.01 +0000","YYYY.MM.DD Z").toDate();
+              existing_indices.end_date=moment( "1970.01.01 +0000","YYYY.MM.DD Z").toDate();
 
               _.each(existing_indices,function(customer_indices,customer_name){
                   if(_.isEqual(customer_name,"start_date") ||
@@ -278,8 +298,8 @@ function (angular, _, config, moment) {
 
                   existing_customers.push(customer_name);
 
-                  customer_indices.start_date=moment("2099.01.01","YYYY.MM.DD").toDate();
-                  customer_indices.end_date=moment("1970.01.01" ,"YYYY.MM.DD").toDate();
+                  customer_indices.start_date=moment("2099.01.01 +0000","YYYY.MM.DD Z").toDate();
+                  customer_indices.end_date=moment("1970.01.01 +0000" ,"YYYY.MM.DD Z").toDate();
 
                   _.each(customer_indices, function(node_indices,node_name){
                       if(_.isEqual(node_name,"start_date") ||
@@ -311,15 +331,12 @@ function (angular, _, config, moment) {
                       existing_indices.end_date=customer_indices.end_date;
                   }
 
-//                  the end date should be added 1, because, e.g. if the last logging happened on 9/28,
-//                  the end of the time range should be 9/29 to get all loggings happended on 9/28
-//                  add 1 more day to the end date, to account for timezones that are behind UTC,
-//                  e.g. if the last logging happened on 9/28 EDT, the UTC time is 9/29, then the
-//                  end of the time ranges should be 9/30 to get all loggings happened on 9/28 EDT
-                  customer_indices.end_date=moment(customer_indices.end_date).add('days',2).toDate();
+                   // the end date should be added 1, because, e.g. if the last logging happened on 9/28,
+                   //the end of the time range should be 9/29 to get all loggings happended on 9/28
+                  customer_indices.end_date=moment(customer_indices.end_date).add('days',1).toDate();
               });
 
-              existing_indices.end_date=moment(existing_indices.end_date).add('days',2).toDate();
+              existing_indices.end_date=moment(existing_indices.end_date).add('days',1).toDate();
 
               existing_customers= _.uniq(existing_customers);
               existing_customers.sort(function(d1,d2){
@@ -327,18 +344,6 @@ function (angular, _, config, moment) {
               });
           });
       }
-
-    /*
-    // this is stupid, but there is otherwise no good way to ensure that when
-    // I extract the date from an object that I get the UTC date. Stupid js.
-    // I die a little inside every time I call this function.
-    // Update: I just read this again. I died a little more inside.
-    // Update2: More death.
-    function fake_utc(date) {
-      date = moment(date).clone().toDate();
-      return moment(new Date(date.getTime() + date.getTimezoneOffset() * 60000));
-    }
-    */
 
     // Create an array of date objects by a given interval
     function expand_range(start, end, interval) {

@@ -8,6 +8,7 @@ function (angular, _) {
   var module = angular.module('kibana.services');
 
   module.service('json2csv', function($q){
+      var _cellMaxLength=32000;
 
       this.json2csv=function(params0,filename) {
 
@@ -73,7 +74,12 @@ function (angular, _) {
                           //this is tested out in excel 2013
                           //TODO:excel can't deal with \t in a cell, so change it to 8 whitespaces
                           //at least it will make the cvs file readable in excel
-                          line += JSON.stringify(data_element[field_element]).replace(/\\r\\n|\\n/g,"\n").replace(/\\t/g,"        ");
+                          var fieldStr=JSON.stringify(data_element[field_element])
+                              .replace(/\\r\\n|\\n/g,"\n").replace(/\\t/g,"        ");
+                          if(fieldStr.length>_cellMaxLength){
+                              fieldStr=fieldStr.substring(0,_cellMaxLength-15)+"...(truncated)"+"\"";
+                          }
+                          line +=fieldStr;
                       }
                       line += params.del;
                   });
