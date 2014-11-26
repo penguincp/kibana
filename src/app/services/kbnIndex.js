@@ -151,8 +151,14 @@ function (angular, _, config, moment) {
 
       }
 
-      var getUTCDate = function (date) {
-          var dateStr = date.getUTCFullYear() + '-' + (date.getUTCMonth() + 1) + '-' + date.getUTCDate();
+      //add two more days into the range to correct for timezone conversion losses
+      //for example, if the doc's timestamp is 2014-09-27-06:44:47.954 CST, it is in index 2014-09-26
+      //if user chooses 2014-09-27 as the boundary of the range, it will miss index 2014-09-26
+      //if the doc's timestamp is 2014-09-27-21:10:10.499 EDT, it is in index 2014-09-28
+      //if user chooses 2014-09-27 as the boundary of the range, it will miss index 2014-09-28
+      var getUTCDate = function (date,isFromDate) {
+          var dateStr = date.getUTCFullYear() + '-' + (date.getUTCMonth() + 1) + '-' +
+              (isFromDate?date.getUTCDate()-1:date.getUTCDate()+1);
 
           return moment(dateStr + " +0000", "YYYY-MM-DD Z").toDate();
       };
@@ -164,8 +170,8 @@ function (angular, _, config, moment) {
           })
       };
 
-    var from= getUTCDate(_from);
-    var to= getUTCDate(_to);
+    var from= getUTCDate(_from,true);
+    var to= getUTCDate(_to,false);
 
     var regex=_.clone(pattern);
     regex=regex.replace(/[Y|M|D]/g,'\\d');
@@ -208,8 +214,6 @@ function (angular, _, config, moment) {
                         possible.push(index);
                     }
                 });
-                //possible=_.union(possible,node_indices["names"]);
-
             });
       });
         return $q.when(possible);

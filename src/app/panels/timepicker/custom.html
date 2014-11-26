@@ -111,9 +111,20 @@
 
     <div class="section"  ng-show="selected_customer != 'All'">
              <label>Show the following nodes </label>
-             <label class="node-option"  ng-repeat="n in existing_nodes">
-                 <input type='checkbox' ng-model="n.selected">  {{n.name}}
-             </label>
+             <!--<label ng-repeat="n in existing_nodes" class="span3">-->
+                 <!--<input type='checkbox' ng-model="n.selected">  {{n.name}}-->
+             <!--</label>-->
+
+            <table cellpadding="10px">
+                <tr class="" ng-repeat="chunk in existingNodeChunks ">
+                    <td ng-repeat="n in chunk">
+                        <label>
+                            <input type='checkbox' ng-model="n.selected" >{{n.name}}
+                        </label>
+                    </td>
+                </tr>
+            </table>
+
              IN  <select class="rows-option" ng-model="show_in_rows" ng-options="c for c in rows_options"/> rows
     </div>
 

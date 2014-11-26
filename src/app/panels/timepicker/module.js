@@ -104,6 +104,7 @@ define([
                         "selected": false
                     }
                 });
+                $scope.existingNodeChunks=splitToChunks($scope.existing_nodes,4);
 
                 $scope.show_in_rows = 1;
                 $scope.rows_options = [];
@@ -111,7 +112,22 @@ define([
                 _.each($scope.existing_nodes, function (v) {
                     $scope.rows_options.push(i++);
                 });
-            }
+            };
+
+            var splitToChunks = function (array, chunk) {
+                var rows = [];
+                //http://stackoverflow.com/questions/8495687/split-array-into-chunks
+                var i, j, temparray;
+                for (i = 0, j = array.length; i < j; i += chunk) {
+                    temparray = array.slice(i, i + chunk);
+
+                    rows.push(temparray);
+                }
+
+                return rows;
+            };
+
+
 
             $scope.customTime = function () {
                 // Assume the form is valid since we're setting it to something valid
