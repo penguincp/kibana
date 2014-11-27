@@ -407,13 +407,10 @@ function (angular, app, $, _, kbn, moment, timeSeries, numeral) {
           }
           delete $scope.panel.error;
 
-       if(dashboard.indices.length === 0) {
-           return;
-       }
+       var indiceDeferred=$q.defer();
+       getIndices(indiceDeferred);
 
-       var indices=dashboard.indices;
-
-       //get_indices().then(function(indices){
+       indiceDeferred.promise.then(function (indices) {
 
               // Make sure we have everything for the request to complete
               if(indices.length === 0) {
@@ -468,10 +465,8 @@ function (angular, app, $, _, kbn, moment, timeSeries, numeral) {
                      });
                   }
               });
-          //});
+          });
       };
-
-
 
     $scope.get_data = function(term_map, segment, query_id) {
       var
